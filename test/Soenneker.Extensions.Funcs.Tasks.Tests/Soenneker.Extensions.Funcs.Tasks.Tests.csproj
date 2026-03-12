@@ -15,7 +15,7 @@
     </ItemGroup>
 
     <ItemGroup>
-        <ProjectReference Include="..\..\src\Soenneker.Extensions.Funcs.Tasks.csproj" />
+        <ProjectReference Include="..\..\src\Soenneker.Extensions.Funcs.Tasks\Soenneker.Extensions.Funcs.Tasks.csproj" />
     </ItemGroup>
 
     <ItemGroup>
