@@ -19,21 +19,7 @@ public static class FuncsTasksExtension
         if (handler is null)
             return Task.CompletedTask;
 
-        // Fast-path: single-cast delegate (no GetInvocationList allocation)
-        if (handler.Target is not null || handler.Method is not null) // always true, but keeps intent clear
-        {
-            // If it's *not* multicast, this stays null
-            if (handler is not MulticastDelegate multicase)
-                return handler(arg);
-        }
-
-        // In practice, Func<...> is always a MulticastDelegate, but the cast is cheap.
-        MulticastDelegate multi = handler;
-
-        // If invocation list is just one, avoid array allocations by calling directly
-        // Unfortunately, the only way to know arity > 1 is GetInvocationList(), so:
-        // - we pay it only when the delegate is multicast (handler combines).
-        Delegate[] list = multi.GetInvocationList();
+        Delegate[] list = handler.GetInvocationList();
         int len = list.Length;
 
         if (len == 0)
@@ -76,12 +62,6 @@ public static class FuncsTasksExtension
     {
         if (handler is null)
             return Task.CompletedTask;
-
-        // Fast-path: single-cast (no GetInvocationList allocation)
-        // Note: a Func<Task> can still be multicast; we only pay GetInvocationList when it is.
-        if (handler.GetInvocationList()
-                   .Length == 1)
-            return handler();
 
         Delegate[] list = handler.GetInvocationList();
         int len = list.Length;
