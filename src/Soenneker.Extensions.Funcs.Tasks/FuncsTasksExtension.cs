@@ -19,19 +19,21 @@ public static class FuncsTasksExtension
         if (handler is null)
             return Task.CompletedTask;
 
-        Delegate[] list = handler.GetInvocationList();
-        int len = list.Length;
+        if (handler.HasSingleTarget)
+            return handler(arg);
 
-        if (len == 0)
-            return Task.CompletedTask;
-
-        if (len == 1)
-            return ((Func<T, Task>)list[0]).Invoke(arg);
+        var invocationList = Delegate.EnumerateInvocationList(handler);
+        var len = 0;
+        foreach (Func<T, Task> _ in invocationList)
+            len++;
 
         if (len == 2)
         {
-            Task t0 = ((Func<T, Task>)list[0]).Invoke(arg);
-            Task t1 = ((Func<T, Task>)list[1]).Invoke(arg);
+            var enumerator = invocationList.GetEnumerator();
+            enumerator.MoveNext();
+            Task t0 = enumerator.Current(arg);
+            enumerator.MoveNext();
+            Task t1 = enumerator.Current(arg);
             return Task.WhenAll(t0, t1);
         }
 
@@ -39,8 +41,9 @@ public static class FuncsTasksExtension
         Task[] rented = ArrayPool<Task>.Shared.Rent(len);
         try
         {
-            for (int i = 0; i < len; i++)
-                rented[i] = ((Func<T, Task>)list[i]).Invoke(arg);
+            var i = 0;
+            foreach (Func<T, Task> subscriber in invocationList)
+                rented[i++] = subscriber(arg);
 
             // WhenAll only observes the first 'len' tasks
             return WhenAllAndReturn(rented, len);
@@ -63,27 +66,30 @@ public static class FuncsTasksExtension
         if (handler is null)
             return Task.CompletedTask;
 
-        Delegate[] list = handler.GetInvocationList();
-        int len = list.Length;
+        if (handler.HasSingleTarget)
+            return handler();
 
-        if (len == 0)
-            return Task.CompletedTask;
-
-        if (len == 1)
-            return ((Func<Task>)list[0]).Invoke();
+        var invocationList = Delegate.EnumerateInvocationList(handler);
+        var len = 0;
+        foreach (Func<Task> _ in invocationList)
+            len++;
 
         if (len == 2)
         {
-            Task t0 = ((Func<Task>)list[0]).Invoke();
-            Task t1 = ((Func<Task>)list[1]).Invoke();
+            var enumerator = invocationList.GetEnumerator();
+            enumerator.MoveNext();
+            Task t0 = enumerator.Current();
+            enumerator.MoveNext();
+            Task t1 = enumerator.Current();
             return Task.WhenAll(t0, t1);
         }
 
         Task[] rented = ArrayPool<Task>.Shared.Rent(len);
         try
         {
-            for (int i = 0; i < len; i++)
-                rented[i] = ((Func<Task>)list[i]).Invoke();
+            var i = 0;
+            foreach (Func<Task> subscriber in invocationList)
+                rented[i++] = subscriber();
 
             return WhenAllAndReturn(rented, len);
         }
