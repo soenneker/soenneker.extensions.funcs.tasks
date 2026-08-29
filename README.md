@@ -4,10 +4,23 @@
 [![](https://img.shields.io/github/actions/workflow/status/soenneker/soenneker.extensions.funcs.tasks/codeql.yml?label=CodeQL&style=for-the-badge)](https://github.com/soenneker/soenneker.extensions.funcs.tasks/actions/workflows/codeql.yml)
 
 # ![](https://user-images.githubusercontent.com/4441470/224455560-91ed3ee7-f510-4041-a8d2-3fc093025112.png) Soenneker.Extensions.Funcs.Tasks
-### A collection of helpful Func Task extension methods.
+A collection of helpful Func Task extension methods.
 
 ## Installation
 
-```
+```bash
 dotnet add package Soenneker.Extensions.Funcs.Tasks
 ```
+
+## Quick start
+
+```csharp
+using Soenneker.Extensions.Funcs.Tasks;
+
+// Given an existing Func<Task>? named handler:
+var result = handler.InvokeIfDefined();
+```
+
+## Common operations
+
+- `InvokeIfDefined()` - Invokes a multicast handler (Func<T, Task>) if it's not null. Awaits all subscribers and aggregates exceptions via Task.WhenAll. Optimized to avoid GetInvocationList allocations for single-cast and to minimize allocations for multi-cast.
