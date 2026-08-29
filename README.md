@@ -4,7 +4,7 @@
 [![](https://img.shields.io/github/actions/workflow/status/soenneker/soenneker.extensions.funcs.tasks/codeql.yml?label=CodeQL&style=for-the-badge)](https://github.com/soenneker/soenneker.extensions.funcs.tasks/actions/workflows/codeql.yml)
 
 # ![](https://user-images.githubusercontent.com/4441470/224455560-91ed3ee7-f510-4041-a8d2-3fc093025112.png) Soenneker.Extensions.Funcs.Tasks
-A collection of helpful Func Task extension methods.
+Invokes optional asynchronous delegates, including every subscriber in a multicast delegate.
 
 ## Installation
 
@@ -12,15 +12,18 @@ A collection of helpful Func Task extension methods.
 dotnet add package Soenneker.Extensions.Funcs.Tasks
 ```
 
-## Quick start
+## Usage
 
 ```csharp
 using Soenneker.Extensions.Funcs.Tasks;
 
-// Given an existing Func<Task>? named handler:
-var result = handler.InvokeIfDefined();
+Func<Order, Task>? handlers = null;
+handlers += SendReceipt;
+handlers += RecordAnalytics;
+
+await handlers.InvokeIfDefined(order);
 ```
 
-## Common operations
+There are overloads for `Func<Task>` and `Func<T, Task>`. A null delegate returns `Task.CompletedTask`. For multicast delegates, every subscriber is invoked immediately and the returned task completes when all subscriber tasks complete—subscribers run concurrently rather than one after another.
 
-- `InvokeIfDefined()` - Invokes a multicast handler (Func<T, Task>) if it's not null. Awaits all subscribers and aggregates exceptions via Task.WhenAll. Optimized to avoid GetInvocationList allocations for single-cast and to minimize allocations for multi-cast.
+Failures follow `Task.WhenAll` semantics: the returned task faults after all subscribers finish, and its `Exception` contains the collected failures. An exception thrown synchronously while invoking a subscriber escapes immediately, so later subscribers are not invoked in that case.
