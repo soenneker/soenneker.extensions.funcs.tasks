@@ -14,6 +14,7 @@ public static class FuncsTasksExtension
     /// Awaits all subscribers and aggregates exceptions via Task.WhenAll.
     /// Optimized to avoid GetInvocationList allocations for single-cast and to minimize allocations for multi-cast.
     /// </summary>
+    /// <returns>Invokes a multicast handler (Func&lt;T, Task&gt;) if it's not null. Awaits all subscribers and aggregates exceptions via Task.WhenAll. Optimized to avoid GetInvocationList allocations for single-cast and to minimize allocations for multi-cast.</returns>
     public static Task InvokeIfDefined<T>(this Func<T, Task>? handler, T arg)
     {
         if (handler is null)
@@ -61,6 +62,7 @@ public static class FuncsTasksExtension
     /// Awaits all subscribers and aggregates exceptions via Task.WhenAll.
     /// Optimized to avoid GetInvocationList allocations for single-cast and to minimize allocations for multi-cast.
     /// </summary>
+    /// <returns>Invokes a multicast handler (Func&lt;Task&gt;) if it's not null. Awaits all subscribers and aggregates exceptions via Task.WhenAll. Optimized to avoid GetInvocationList allocations for single-cast and to minimize allocations for multi-cast.</returns>
     public static Task InvokeIfDefined(this Func<Task>? handler)
     {
         if (handler is null)
